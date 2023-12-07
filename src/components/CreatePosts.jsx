@@ -11,13 +11,22 @@ import {
 	useDisclosure,
 	FormControl,
 	Textarea,
+	CloseButton,
 	Text,
+	Flex,
 	Input,
-	Image
+	Image,
+
 } from "@chakra-ui/react";
 import { useState, useRef } from "react";
 import usePreviewImg from "../hooks/usePreviewImg"
 import {BsFillImageFill} from "react-icons/bs"
+import userAtom from "../atoms/userAtom"
+import { useRecoilValue, useRecoilState } from "recoil";
+import postsAtom from "../atoms/postsAtom";
+import { useParams } from "react-router-dom";
+import useShowToast from "../hooks/useShowToast";
+
 
 
 const MAX_CHAR = 500
@@ -28,6 +37,11 @@ const CreatePosts = () => {
 	const imageRef = useRef(null);
 	const [remainingChar, setRemainingChar] = useState(MAX_CHAR)
 	const {handleImageChange, imgUrl, setImgUrl} = usePreviewImg()
+	const [loading, setLoading] = useState(false)
+	const user = useRecoilValue(userAtom)
+	const showToast = useShowToast()
+	const [posts, setPosts] = useRecoilState(postsAtom)
+	const {username} = useParams()
 
 	const handleTextChange = (e) => {
 		const inputText = e.target.value
@@ -41,7 +55,35 @@ const CreatePosts = () => {
 		}
 	}
 
-	const handleCreatePost = async () => {}
+	const handleCreatePost = async () => {
+		setLoading(true);
+			try{
+				const res = await fetch("/api/posts/create", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({postedBy: user._id, text: postText, img: imgUrl}),
+				})
+					const data = await res.json()
+					if(data.error){
+						showToast("Error", data.error, "error")
+						return
+					}
+
+					showToast("Success", "Post Created Successfully", "Success")
+					if(username === user.username) {
+						setPosts([data, ...posts]);
+					}
+
+					onClose()
+
+			}catch(error){
+				showToast("Error", error, "Error")
+			} finally {
+				setLoading(false)
+			}
+	}
 	return (
 		<>
 			<Button
