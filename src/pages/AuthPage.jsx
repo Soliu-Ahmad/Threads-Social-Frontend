@@ -1,11 +1,13 @@
-// import React from 'react'
-import SignupCard from '..components/SignupCard'
-const AuthPage = () => {
-  return (
-    <>
-    <SignupCard />  
-    </>
-  )
-}
+// import React from "react";
+import LoginCard from "../components/LoginCard";
+import SignupCard from "../components/SignupCard";
+import authScreenAtom from "../atoms/authAtom";
+import { useRecoilValue } from "recoil";
 
-export default AuthPage
+const AuthPage = () => {
+	const authScreenState = useRecoilValue(authScreenAtom);
+
+	return <>{authScreenState === "login" ? <LoginCard /> : <SignupCard />}</>;
+};
+
+export default AuthPage;
