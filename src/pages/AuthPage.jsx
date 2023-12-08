@@ -1,6 +1,6 @@
-// import React from "react";
+import React from "react";
 import LoginCard from "../components/LoginCard";
-import SignupCard from "../components/SignupCard";
+import SignupCard from "../components/SignUpCard";
 import authScreenAtom from "../atoms/authAtom";
 import { useRecoilValue } from "recoil";
 

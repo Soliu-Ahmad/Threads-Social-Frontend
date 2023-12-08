@@ -25,6 +25,7 @@ import userAtom from "../atoms/userAtom";
 
 
 export default function LoginCard() {
+	const [loading, setLoading] = useState(false)
 	const [showPassword, setShowPassword] = useState(false);
 	const setAuthScreen = useSetRecoilState(authScreenAtom);
     const setUser = useSetRecoilState(userAtom)
@@ -36,6 +37,7 @@ export default function LoginCard() {
     const showToast = useShowToast()
 
     const handleLogin = async () => {
+		setLoading(true)
         try {
             const res = await fetch("/api/users/login", {
                 method: "POST",
@@ -56,7 +58,9 @@ export default function LoginCard() {
             setUser(data)
         } catch (error) {
             showToast("Error", error, "error")
-        }
+        } finally {
+			setLoading(false)
+		}
     }
 
 	return (
@@ -79,7 +83,7 @@ export default function LoginCard() {
 				>
 					<Stack spacing={4}>
 						<FormControl isRequired>
-							<FormLabel>username</FormLabel>
+							<FormLabel>Username</FormLabel>
 							<Input
 								type="text"
 								value={inputs.username}
@@ -118,7 +122,7 @@ export default function LoginCard() {
 						</FormControl>
 						<Stack spacing={10} pt={2}>
 							<Button
-								loadingText="Submitting"
+								loadingText="Logging in"
 								size="lg"
 								bg={useColorModeValue("gray.600", "gray.700")}
 								color={"white"}
@@ -126,7 +130,9 @@ export default function LoginCard() {
 									bg: useColorModeValue("gray.600", "gray.800"),
 								}}
 								onClick={handleLogin}
+								isLoading={loading}
 							>
+								{/* {loading ? "Logging in..." : "Login"} */}
 								Login
 							</Button>
 						</Stack>
