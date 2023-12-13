@@ -3,16 +3,18 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import useShowToast from "../hooks/useShowToast";
 import Post from "../components/Post";
+import { useRecoilState } from "recoil";
+import postsAtom from "../atoms/postsAtom";
 
 const HomePage = () => {
-	const [posts, setPosts] = useState([]);
+	const [posts, setPosts] = useRecoilState(postsAtom)
 	const showToast = useShowToast();
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
 		const getFeedPosts = async () => {
 			setLoading(true);
-
+			setPosts([])
 			try {
 				const res = await fetch("/api/posts/feed");
 				const data = await res.json();
@@ -20,7 +22,6 @@ const HomePage = () => {
 					showToast("Error", data.error, "error");
 					return;
 				}
-				console.log(data);
 				setPosts(data);
 			} catch (err) {
 				showToast("Error", err.message, "error");
@@ -29,7 +30,7 @@ const HomePage = () => {
 			}
 		};
 		getFeedPosts();
-	}, [showToast]);
+	}, [showToast, setPosts]);
 
 	return (
 		<>

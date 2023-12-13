@@ -17,19 +17,26 @@ import Actions from "./Actions";
 import { useEffect, useState } from "react";
 import useShowToast from "../hooks/useShowToast";
 import { formatDistanceToNow } from "date-fns";
+import { DeleteIcon } from "@chakra-ui/icons";
+import { useRecoilState, useRecoilValue } from "recoil";
+import userAtom from "../atoms/userAtom";
+import postsAtom from "../atoms/postsAtom";
 
-const Post = ({ post, postedBy }) => {
+const Post = ({ post, postedBy}) => {
 	const [liked, setLiked] = useState(false);
 	const [user, setUser] = useState(null);
 	const showToast = useShowToast();
+	const [posts, setPosts] = useRecoilState(postsAtom)
 	const navigate = useNavigate();
+	const currentUser = useRecoilValue(userAtom);
+	// console.log(post)
 
 	useEffect(() => {
 		const getUser = async () => {
 			try {
 				const res = await fetch(`/api/users/profile/${postedBy}`);
 				const data = await res.json();
-				console.log(data);
+				// console.log(data);
 				setUser(data);
 				if (data.error) {
 					showToast("Error", data.error, "error");
@@ -42,6 +49,29 @@ const Post = ({ post, postedBy }) => {
 		};
 		getUser();
 	}, [postedBy, showToast]);
+
+	const handleDeletePost = async (e) => {
+		try {
+			e.preventDefault();
+			if (!window.confirm("Are you sure you want to delete this post?")) return;
+
+			const res = await fetch(`/api/posts/${post._id}`, {
+				method: "DELETE",
+			});
+
+			const data = await res.json();
+
+			if (data.error) {
+				showToast("Error", data.error, "error");
+				return;
+			}
+			showToast("Success", "Post deleted successfully", "success");
+			
+			setPosts((prev) => prev.filter((p) => p._id !== post._id));
+		} catch (error) {
+			showToast("Error", error.message, "error");
+		}
+	};
 
 	if (!user) return null;
 
@@ -112,30 +142,17 @@ const Post = ({ post, postedBy }) => {
 						</Flex>
 						<Flex
 							alignItems={"center"}
-              justifyContent={"space-around"}
+							justifyContent={"space-around"}
 							gap={4}
 							onClick={(e) => e.preventDefault()}
 						>
-							<Text fontSize={"xs"} width={36} textAlign={"right"}>{formatDistanceToNow(new Date(post.createdAt))} ago</Text>
-							<Menu>
-								<MenuButton>
-									<BsThreeDots cursor={"pointer"} />
-								</MenuButton>
-								<MenuList>
-									<MenuGroup>
-										<MenuItem color={"gray.light"}>Mute</MenuItem>
-									</MenuGroup>
-									<MenuDivider />
-									<MenuGroup>
-										<MenuItem color={"red"}>Block</MenuItem>
-										<MenuItem color={"gray.light"}>Hide</MenuItem>
-									</MenuGroup>
-									<MenuDivider />
-									<MenuGroup>
-										<MenuItem color={"red"}>Report</MenuItem>
-									</MenuGroup>
-								</MenuList>
-							</Menu>
+							<Text fontSize={"xs"} width={36} textAlign={"right"} color={"gray.light"}>
+								{formatDistanceToNow(new Date(post.createdAt))} ago
+							</Text>
+							{currentUser?._id === user._id && (
+								<DeleteIcon cursor={"pointer"} size={20} onClick={handleDeletePost} />
+							)}
+							
 						</Flex>
 					</Flex>
 
@@ -150,19 +167,8 @@ const Post = ({ post, postedBy }) => {
 							<Image src={post.img} width={"full"} />
 						</Box>
 					)}
-					<Flex>
-						<Actions liked={liked} setLiked={setLiked} />
-					</Flex>
-
-					<Flex
-						gap={2}
-						color={"gray.light"}
-						fontSize={"sm"}
-						alignItems={"center"}
-					>
-						<Text>{post.replies.length} replies</Text>
-						<Box w={0.5} h={0.5} bg={"gray.light"} borderRadius={"full"}></Box>
-						<Text>{post.likes.length} likes</Text>
+					<Flex gap={3} my={1}>
+						<Actions post={post}  />
 					</Flex>
 				</Flex>
 			</Flex>
